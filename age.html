@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekday Age Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: #2a2a2a;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            max-width: 480px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #f5f5f5;
+            text-align: center;
+            margin-bottom: 32px;
+            letter-spacing: -0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #b0b0b0;
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        input[type="date"],
+        input[type="number"] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            background: #1f1f1f;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            color: #e0e0e0;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="date"]:focus,
+        input[type="number"]:focus {
+            border-color: #555555;
+            box-shadow: 0 0 0 3px rgba(85, 85, 85, 0.1);
+        }
+
+        input[type="date"]:hover,
+        input[type="number"]:hover {
+            border-color: #4a4a4a;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.7);
+            cursor: pointer;
+        }
+
+        .info-box {
+            background: #1f1f1f;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .info-box strong {
+            color: #d0d0d0;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #404040;
+            color: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            background: #4a4a4a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 32px;
+            padding: 20px;
+            background: #1f1f1f;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .result-text {
+            font-size: 16px;
+            color: #c0c0c0;
+            line-height: 1.6;
+        }
+
+        .result-text.empty {
+            color: #707070;
+            font-style: italic;
+        }
+
+        .result-text.error {
+            color: #d08080;
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            .container {
+                padding: 28px 24px;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 24px;
+            }
+
+            input[type="date"],
+            input[type="number"],
+            button {
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                padding: 24px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weekday Age Calculator</h1>
+        
+        <div class="form-group">
+            <label for="birthDate">Birth Date</label>
+            <input type="date" id="birthDate" required>
+        </div>
+
+        <div class="info-box" id="birthWeekdayInfo" style="display: none;">
+            You were born on a <strong id="birthWeekday"></strong>
+        </div>
+
+        <div class="form-group">
+            <label for="occurrences">Times Celebrated on Birth Weekday</label>
+            <input type="number" id="occurrences" min="1" value="1" required>
+        </div>
+
+        <button id="calculateBtn">Calculate Age</button>
+
+        <div class="result">
+            <p class="result-text empty" id="resultText">Enter your details and click Calculate</p>
+        </div>
+    </div>
+
+    <script>
+        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const today = new Date('2025-11-13'); // Current date
+
+        function isLeapYear(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        }
+
+        function calculateCurrentAge(birthDate, occurrencesTarget) {
+            const birth = new Date(birthDate);
+            const birthYear = birth.getFullYear();
+            const birthMonth = birth.getMonth();
+            const birthDay = birth.getDate();
+            const birthWeekday = birth.getDay();
+            
+            if (isNaN(birth.getTime())) {
+                throw new Error("Invalid birth date");
+            }
+            
+            if (birth > today) {
+                throw new Error("Birth date cannot be in the future");
+            }
+
+            const isLeapDayBirth = (birthMonth === 1 && birthDay === 29);
+            
+            let count = 0;
+            let currentYear = birthYear;
+            
+            while (currentYear <= today.getFullYear()) {
+                let checkDate;
+                
+                if (isLeapDayBirth) {
+                    if (isLeapYear(currentYear)) {
+                        checkDate = new Date(currentYear, 1, 29);
+                    } else {
+                        currentYear++;
+                        continue;
+                    }
+                } else {
+                    checkDate = new Date(currentYear, birthMonth, birthDay);
+                }
+                
+
+                if (checkDate <= today && checkDate.getDay() === birthWeekday) {
+                    count++;
+                }
+                
+                currentYear++;
+            }
+            
+            if (occurrencesTarget > count) {
+                throw new Error(`You've only celebrated ${count} time${count !== 1 ? 's' : ''} on ${weekdays[birthWeekday]} so far`);
+            }
+            
+            count = 0;
+            currentYear = birthYear;
+            let targetYear = birthYear;
+            
+            while (count < occurrencesTarget) {
+                let checkDate;
+                
+                if (isLeapDayBirth) {
+                    if (isLeapYear(currentYear)) {
+                        checkDate = new Date(currentYear, 1, 29);
+                    } else {
+                        currentYear++;
+                        continue;
+                    }
+                } else {
+                    checkDate = new Date(currentYear, birthMonth, birthDay);
+                }
+                
+                if (checkDate.getDay() === birthWeekday) {
+                    count++;
+                    if (count === occurrencesTarget) {
+                        targetYear = currentYear;
+                        break;
+                    }
+                }
+                
+                currentYear++;
+            }
+            
+            let age = today.getFullYear() - birthYear;
+            const currentMonthDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const birthMonthDay = new Date(today.getFullYear(), birthMonth, birthDay);
+            
+            if (currentMonthDay < birthMonthDay) {
+                age--;
+            }
+            
+            return {
+                age: age,
+                targetYear: targetYear,
+                birthWeekday: weekdays[birthWeekday]
+            };
+        }
+
+        document.getElementById('birthDate').addEventListener('change', function() {
+            const birthDate = this.value;
+            if (birthDate) {
+                const birth = new Date(birthDate);
+                const weekday = weekdays[birth.getDay()];
+                document.getElementById('birthWeekday').textContent = weekday;
+                document.getElementById('birthWeekdayInfo').style.display = 'block';
+            }
+        });
+
+        document.getElementById('calculateBtn').addEventListener('click', function() {
+            const birthDate = document.getElementById('birthDate').value;
+            const occurrences = parseInt(document.getElementById('occurrences').value);
+            const resultText = document.getElementById('resultText');
+            
+            if (!birthDate) {
+                resultText.textContent = 'Please enter a birth date';
+                resultText.classList.add('error');
+                resultText.classList.remove('empty');
+                return;
+            }
+            
+            if (!occurrences || occurrences < 1) {
+                resultText.textContent = 'Please enter a valid number (at least 1)';
+                resultText.classList.add('error');
+                resultText.classList.remove('empty');
+                return;
+            }
+            
+            try {
+                const result = calculateCurrentAge(birthDate, occurrences);
+                
+                resultText.textContent = `You are currently ${result.age} years old. Your ${occurrences}${getOrdinalSuffix(occurrences)} ${result.birthWeekday} birthday was in ${result.targetYear}.`;
+                resultText.classList.remove('empty', 'error');
+            } catch (error) {
+                resultText.textContent = `Error: ${error.message}`;
+                resultText.classList.add('error');
+                resultText.classList.remove('empty');
+            }
+        });
+        
+        function getOrdinalSuffix(num) {
+            const j = num % 10;
+            const k = num % 100;
+            if (j === 1 && k !== 11) return 'st';
+            if (j === 2 && k !== 12) return 'nd';
+            if (j === 3 && k !== 13) return 'rd';
+            return 'th';
+        }
+
+        document.getElementById('occurrences').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('calculateBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
