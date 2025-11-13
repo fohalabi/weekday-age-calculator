@@ -192,7 +192,7 @@
         </div>
 
         <div class="form-group">
-            <label for="occurrences">Times Celebrated on Birth Weekday</label>
+            <label for="occurrences">Times Celebrated on Birth Weekday (excluding birth year)</label>
             <input type="number" id="occurrences" min="1" value="1" required>
         </div>
 
@@ -228,8 +228,9 @@
 
             const isLeapDayBirth = (birthMonth === 1 && birthDay === 29);
             
+            // Count how many times birthday has fallen on birth weekday up to today (excluding birth year)
             let count = 0;
-            let currentYear = birthYear;
+            let currentYear = birthYear + 1; // Start from year after birth
             
             while (currentYear <= today.getFullYear()) {
                 let checkDate;
@@ -245,7 +246,7 @@
                     checkDate = new Date(currentYear, birthMonth, birthDay);
                 }
                 
-
+                // Only count if this birthday has already occurred (is in the past or today)
                 if (checkDate <= today && checkDate.getDay() === birthWeekday) {
                     count++;
                 }
@@ -253,12 +254,14 @@
                 currentYear++;
             }
             
+            // Check if the user's input matches reality
             if (occurrencesTarget > count) {
-                throw new Error(`You've only celebrated ${count} time${count !== 1 ? 's' : ''} on ${weekdays[birthWeekday]} so far`);
+                throw new Error(`You've only celebrated ${count} time${count !== 1 ? 's' : ''} on ${weekdays[birthWeekday]} so far (excluding birth year)`);
             }
             
+            // Find the year when the Nth occurrence happened (excluding birth year)
             count = 0;
-            currentYear = birthYear;
+            currentYear = birthYear + 1; // Start from year after birth
             let targetYear = birthYear;
             
             while (count < occurrencesTarget) {
@@ -286,10 +289,12 @@
                 currentYear++;
             }
             
+            // Calculate current age (as of today)
             let age = today.getFullYear() - birthYear;
             const currentMonthDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
             const birthMonthDay = new Date(today.getFullYear(), birthMonth, birthDay);
             
+            // If birthday hasn't occurred this year yet, subtract 1
             if (currentMonthDay < birthMonthDay) {
                 age--;
             }
@@ -301,6 +306,7 @@
             };
         }
 
+        // Show birth weekday when date is selected
         document.getElementById('birthDate').addEventListener('change', function() {
             const birthDate = this.value;
             if (birthDate) {
@@ -311,6 +317,7 @@
             }
         });
 
+        // Calculate button click handler
         document.getElementById('calculateBtn').addEventListener('click', function() {
             const birthDate = document.getElementById('birthDate').value;
             const occurrences = parseInt(document.getElementById('occurrences').value);
@@ -351,6 +358,7 @@
             return 'th';
         }
 
+        // Allow Enter key to calculate
         document.getElementById('occurrences').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 document.getElementById('calculateBtn').click();
